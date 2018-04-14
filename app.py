@@ -120,11 +120,11 @@ def get_chats(n):
     rows = cur.fetchall()
     conn.commit()
     conn.close()
-    return map(lambda row: {'id': row[0],
+    return list(map((lambda row: {'id': row[0],
                        'user_id': row[1],
                        'content': row[2],
-                       'username': get_user_from_id(row[1])['username']},
-               rows)
+                       'username': get_user_from_id(row[1])['username']}),
+                    rows))
 
 def user_delete_chat_of_id(uid, tid):
     conn = connect_db()
@@ -159,15 +159,21 @@ def render_create_account():
 </div>
 '''
 
-# @app.route('/changepassword/<newpassword>')
-# def changepassword():
+@app.route('/changepassword/<newpassword>')
+def changepassword(newpassword):
+    conn = connect_db()
+    cur = conn.cursor()
+    cur.execute('UPDATE `user` SET password=\'%s\' WHERE id=\'%d\'' % (newpassword, session['uid']))
+    conn.commit()
+    conn.close()
+    return "success", 200
 
 @app.route('/getpassword')
-def changepassword():
+def getpassword():
     if 'uid' in session:
         conn = connect_db()
         cur = conn.cursor()
-        cur.execute('SELECT password FROM `user` WHERE uid=\'%d\'' % (uid))
+        cur.execute('SELECT password FROM `user` WHERE id=\'%d\'' % (session['uid']))
         row = cur.fetchone()
         conn.commit()
         conn.close()
